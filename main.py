@@ -6,7 +6,7 @@ import numpy as np
 
 from dataset import Dictionary, VQAFeatureDataset
 import base_model
-import san_model1
+import san_model_origin1
 from train import train
 import utils
 
