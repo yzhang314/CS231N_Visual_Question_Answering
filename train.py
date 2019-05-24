@@ -28,6 +28,7 @@ def train(model, train_loader, eval_loader, num_epochs, output):
     logger = utils.Logger(os.path.join(output, 'log.txt'))
     best_eval_score = 0
     f = open("result5.txt", "w+")
+    f.write('name of the project:', ''))
 
     for epoch in range(num_epochs):
         total_loss = 0
