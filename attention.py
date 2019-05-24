@@ -27,7 +27,7 @@ class Attention(nn.Module):
         logits = self.linear(joint_repr)# [batch, k, 1]
         return logits
 
-
+# Zewen Zhang NB!
 class NewAttention(nn.Module):
     def __init__(self, v_dim, q_dim, num_hid, dropout=0.2):
         super(NewAttention, self).__init__()
