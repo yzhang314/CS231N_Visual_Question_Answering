@@ -33,7 +33,7 @@ class CNNModel(nn.Module):
         #q_emb2 = self.q_emb2(w_emb) # [batch, q_dim]
 
         #q_emb = torch.cat((q_emb1, q_emb2), 1) # [batch, 2*q_dim]
-        q_emb = self.q_emb2(q)
+        q_emb = self.q_emb2(w_emb)
 
         v_emb = self.linear_v(v)  # [batch, 2*num_hid]
         #q_emb = self.linear_q(q_emb) # [batch, 2*num_hid]
