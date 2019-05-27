@@ -107,7 +107,6 @@ class QuestionEmbedding1(nn.Module):
 
         question_embedding = torch.cat((tanh1, tanh2, tanh3), dim=1).squeeze(2) # [batch, 1024]
 
-
         # linear_layer = nn.Linear(in_features=length, out_features=1024)
 
         # question_embedding = self.linear(question_embedding)
