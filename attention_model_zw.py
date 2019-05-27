@@ -15,7 +15,7 @@ class AttentionModel(nn.Module):
         self.q_net = q_net
         self.v_net = v_net
         self.classifier = classifier
-        self.linear = linear
+        self.linear_v = linear_v
 
     def forward(self, v, b, q, labels):
         """Forward
