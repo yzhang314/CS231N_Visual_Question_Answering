@@ -5,7 +5,7 @@ from language_model import WordEmbedding, QuestionEmbedding
 from classifier import SimpleClassifier
 from fc import FCNet
 
-# concatenate version
+# concatenate version, match dimension later
 class SANModel1(nn.Module):
     def __init__(self, w_emb, q_emb, v_att1, v_att2, q_net, v_net, classifier,):
         super(SANModel1, self).__init__()
@@ -64,14 +64,3 @@ def build_baseline0(dataset, num_hid):
         num_hid, 2 * num_hid, dataset.num_ans_candidates, 0.5)
     return SANModel1(w_emb, q_emb, v_att1, v_att2, q_net, v_net, classifier)
 
-def build_baseline1(dataset, num_hid):
-    w_emb = WordEmbedding(dataset.dictionary.ntoken, 300, 0.0)
-    q_emb = QuestionEmbedding(300, num_hid, 1, False, 0.0)
-    v_att1 = Attention(num_hid, num_hid, num_hid)
-    v_att2 = Attention(num_hid, num_hid, num_hid)
-
-    q_net = FCNet([num_hid, num_hid])
-    v_net = FCNet([dataset.v_dim, num_hid])
-    classifier = SimpleClassifier(
-        num_hid, 2 * num_hid, dataset.num_ans_candidates, 0.5)
-    return SANModel1(w_emb, q_emb, v_att1, v_att2, q_net, v_net, classifier)

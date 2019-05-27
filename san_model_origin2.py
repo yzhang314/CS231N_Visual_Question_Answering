@@ -5,7 +5,7 @@ from language_model import WordEmbedding, QuestionEmbedding
 from classifier import SimpleClassifier
 from fc import FCNet
 
-# Match dimension first
+# Match dimension first, concatenate v and q to calculate the logits
 class SANModel2(nn.Module):
     def __init__(self, w_emb, q_emb, v_att1, v_att2, q_net, v_net, classifier,):
         super(SANModel2, self).__init__()
