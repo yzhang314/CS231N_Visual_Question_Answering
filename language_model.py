@@ -80,32 +80,35 @@ class QuestionEmbedding(nn.Module):
         output, hidden = self.rnn(x, hidden)
         return output
 
-class QuestionEmbedding2(nn.Module):
+class QuestionEmbedding1(nn.Module):
     def __init__(self, in_dim, num_hid):
         """Module for question CNN embedding
         """
-        super(QuestionEmbedding2, self).__init__()
+        super(QuestionEmbedding1, self).__init__()
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=256, kernel_size=(1, in_dim), stride=1, padding=0, dilation=1, groups=1, bias=True)
-        self.conv2 = nn.Conv2d(in_channel=1, out_channel=512, kernel_size=(2, in_dim), stride=1, padding=0, dilation=1, groups=1, bias=True)
-        self.conv3 = nn.Conv2d(in_channel=1, out_channel=512, kernel_size=(3, in_dim), stride=1, padding=0, dilation=1, groups=1, bias=True)
+        self.conv2 = nn.Conv2d(in_channels=1, out_channels=512, kernel_size=(2, in_dim), stride=1, padding=0, dilation=1, groups=1, bias=True)
+        self.conv3 = nn.Conv2d(in_channels=1, out_channels=512, kernel_size=(3, in_dim), stride=1, padding=0, dilation=1, groups=1, bias=True)
 
     def forward(self, x):
         # x: [batch, sequence, in_dim]
-        tanh1 = self.conv1(x) # [batch, sequence, 1, 256]
+        x_input = x.unsqueeze(1)  # [batch, 1, sequence, in_dim]
+        tanh1 = self.conv1(x_input) # [batch, 256, sequence, 1]
         tanh1 = torch.tanh(tanh1)
-        tanh1 = torch.max(tanh1, dim=3)  # [batch, sequence, 1]
-        tanh2 = self.conv2(x) # [batch, sequence - 1, 1, 512]
-        tanh2 = torch.tanh(tanh2)
-        tanh2 = torch.max(tanh2, dim=3) # [batch, sequence - 1, 1]
-        tanh3 = self.conv3(x) # [batch, sequence - 2, 1, 512]
-        tanh3 = torch.tanh(tanh3)
-        tanh3 = torch.max(tanh3, dim=3)  # [batch, sequence - 2, 1]
+        tanh1, indice1 = torch.max(tanh1, dim=1)  # [batch, 1, sequence, 1]
 
-        question_embedding = torch.cat((tanh1, tanh2, tanh3), dim=1).squeeze(1) # [batch, 3*sequence - 3]
+        tanh2 = self.conv2(x_input) # [batch, 512, sequence - 1, 1]
+        tanh2 = torch.tanh(tanh2)
+        tanh2, indice2 = torch.max(tanh2, dim=1) # [batch, 1, sequence - 1, 1]
+
+        tanh3 = self.conv3(x_input) # [batch, 512, sequence - 2, 1]
+        tanh3 = torch.tanh(tanh3)
+        tanh3, indice3 = torch.max(tanh3, dim=1)  # [batch, 1, sequence - 2, 1]
+
+        question_embedding = torch.cat((tanh1, tanh2, tanh3), dim=2).squeeze(1).squeeze(2) # [batch, 3*sequence - 3]
 
         length = 3* x.size(1) - 3
-        self.linear = nn.linear(in_features=length, out_features = 1024)
-        question_embedding = self.lienar(question_embedding)
+        linear_layer = nn.linear(in_features=length, out_features=1024)
+        question_embedding = linear_layer(question_embedding)
 
         return question_embedding
 
