@@ -29,18 +29,13 @@ class CNNModel(nn.Module):
         return: logits, not probs
         """
         w_emb = self.w_emb(q)  # [batch, seq, 300]
-        #q_emb1 = self.q_emb1(w_emb)  # [batch, q_dim]
-        #q_emb2 = self.q_emb2(w_emb) # [batch, q_dim]
+        q_emb = self.q_emb1(w_emb)  # [batch, q_dim]
 
-        #q_emb = torch.cat((q_emb1, q_emb2), 1) # [batch, 2*q_dim]
-        q_emb = self.q_emb2(w_emb)
-
-        v_emb = self.linear_v(v)  # [batch, 2*num_hid]
-        #q_emb = self.linear_q(q_emb) # [batch, 2*num_hid]
+        v_emb = self.linear(v)
 
         # stack 1
         att = self.v_att(v_emb, q_emb)
-        v_emb1 = (att * v).sum(1)  # [batch, v_dim]
+        v_emb1 = (att * v_emb).sum(1)  # [batch, num_hid]
 
         q_repr = self.q_net(q_emb)  # [batch, num_hid]
         v_repr = self.v_net(v_emb1)  # [batch, num_hid]
