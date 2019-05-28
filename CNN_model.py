@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
 from attention import Attention, NewAttention, StackAttention1
-from language_model import WordEmbedding, QuestionEmbedding1, QuestionEmbedding
+from language_model import WordEmbedding, QuestionEmbedding, cnnQuestionEmbedding, QuestionEmbedding1
 from classifier import SimpleClassifier
 from fc import FCNet
 
 
 class CNNModel(nn.Module):
-    def __init__(self, w_emb, q_emb1, q_emb2, v_att, q_net, v_net, classifier, linear_v, linear_q):
+    def __init__(self, w_emb, q_emb1, q_emb2, v_att, q_net, v_net, classifier, linear):
         super(CNNModel, self).__init__()
         self.w_emb = w_emb
         self.q_emb1 = q_emb1
@@ -16,8 +16,8 @@ class CNNModel(nn.Module):
         self.q_net = q_net
         self.v_net = v_net
         self.classifier = classifier
-        self.linear_v = linear_v
-        self.linear_q = linear_q
+        self.linear = linear
+
 
     def forward(self, v, b, q, labels):
         """Forward
@@ -29,9 +29,9 @@ class CNNModel(nn.Module):
         return: logits, not probs
         """
         w_emb = self.w_emb(q)  # [batch, seq, 300]
-        q_emb = self.q_emb1(w_emb)  # [batch, q_dim]
+        q_emb = self.q_emb1(w_emb)  # [batch, q_dim(=num_hid)]
 
-        v_emb = self.linear_v(v)
+        v_emb = self.linear(v) # [batch, num_hid]
 
         # stack 1
         att = self.v_att(v_emb, q_emb)
@@ -49,13 +49,13 @@ class CNNModel(nn.Module):
 
 def build_baseline0(dataset, num_hid):
     w_emb = WordEmbedding(dataset.dictionary.ntoken, 300, 0.0)
-    q_emb1 = cnnQuestionEmbedding(300)
-    q_emb2 = QuestionEmbedding(300, num_hid, 1, False, 0.0)
+    q_emb1 = QuestionEmbedding(300, num_hid, 1, False, 0.0)
+    q_emb2 = QuestionEmbedding1(300)
     v_att = StackAttention1(num_hid, num_hid, num_hid)
     q_net = FCNet([num_hid, num_hid])
-    v_net = FCNet([dataset.v_dim, num_hid])
-    linear_v = FCNet([dataset.v_dim, num_hid])
-    linear_q = torch.nn.Linear(2*num_hid, num_hid)
+    v_net = FCNet([num_hid, num_hid])
+    linear = FCNet([dataset.v_dim, num_hid])
     classifier = SimpleClassifier(
         num_hid, 2 * num_hid, dataset.num_ans_candidates, 0.5)
-    return CNNModel(w_emb, q_emb1, q_emb2, v_att, q_net, v_net, classifier, linear_v, linear_q)
+    return CNNModel(w_emb, q_emb1, q_emb2, v_att, q_net, v_net, classifier, linear)
+

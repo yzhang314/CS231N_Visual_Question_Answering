@@ -80,6 +80,39 @@ class QuestionEmbedding(nn.Module):
         output, hidden = self.rnn(x, hidden)
         return output
 
+class QuestionEmbedding1(nn.Module):
+    def __init__(self, in_dim):
+        """Module for question CNN embedding
+        """
+        super(QuestionEmbedding1, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=256, kernel_size=(1, in_dim), stride=1, padding=0, dilation=1, groups=1, bias=True)
+        self.conv2 = nn.Conv2d(in_channels=1, out_channels=256, kernel_size=(2, in_dim), stride=1, padding=0, dilation=1, groups=1, bias=True)
+        self.conv3 = nn.Conv2d(in_channels=1, out_channels=512, kernel_size=(3, in_dim), stride=1, padding=0, dilation=1, groups=1, bias=True)
+
+    def forward(self, x):
+        # x: [batch, sequence, in_dim]
+        x_input = x.unsqueeze(1)  # [batch, 1, sequence, in_dim]
+        tanh1 = self.conv1(x_input) # [batch, 1024, sequence, 1]
+        tanh1 = torch.tanh(tanh1)
+        tanh1, indice1 = torch.max(tanh1, dim=2)  # [batch, 256, 1]
+
+        tanh2 = self.conv2(x_input) # [batch, 1024, sequence - 1, 1]
+        tanh2 = torch.tanh(tanh2)
+        tanh2, indice2 = torch.max(tanh2, dim=2) # [batch, 256, 1]
+
+        tanh3 = self.conv3(x_input) # [batch, 1024, sequence - 2, 1]
+        tanh3 = torch.tanh(tanh3)
+        tanh3, indice3 = torch.max(tanh3, dim=2)  # [batch, 512, 1]
+
+
+        question_embedding = torch.cat((tanh1, tanh2, tanh3), dim=1).squeeze(2) # [batch, 1024]
+
+        # linear_layer = nn.Linear(in_features=length, out_features=1024)
+
+        # question_embedding = self.linear(question_embedding)
+
+        return question_embedding
+
 # CNN Question Embedding
 class cnnQuestionEmbedding(nn.Module):
     def __init__(self, in_dim):
