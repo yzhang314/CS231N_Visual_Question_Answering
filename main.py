@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 import numpy as np
 
 from dataset import Dictionary, VQAFeatureDataset
-import base_model
+import LSTM_model
 import CNN_model
 import san_model_origin1
 from train import train
