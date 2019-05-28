@@ -1,16 +1,17 @@
 import torch
 import torch.nn as nn
 from attention import Attention, NewAttention
-from language_model import WordEmbedding, QuestionEmbedding
+from language_model import WordEmbedding, QuestionEmbedding, QuestionEmbedding1
 from classifier import SimpleClassifier
 from fc import FCNet
 
 
-class BaseModel(nn.Module):
-    def __init__(self, w_emb, q_emb, v_att, q_net, v_net, classifier):
-        super(BaseModel, self).__init__()
+class CNNModel1(nn.Module):
+    def __init__(self, w_emb, q_emb1, q_emb2, v_att, q_net, v_net, classifier):
+        super(CNNModel1, self).__init__()
         self.w_emb = w_emb
-        self.q_emb = q_emb
+        self.q_emb1 = q_emb1
+        self.q_emb2 = q_emb2
         self.v_att = v_att
         self.q_net = q_net
         self.v_net = v_net
@@ -24,7 +25,7 @@ class BaseModel(nn.Module):
         return: logits, not probs
         """
         w_emb = self.w_emb(q)
-        q_emb = self.q_emb(w_emb) # [batch, q_dim]
+        q_emb = self.q_emb2(w_emb) # [batch, q_dim]
 
         att = self.v_att(v, q_emb)
         v_emb = (att * v).sum(1) # [batch, v_dim]
@@ -38,13 +39,14 @@ class BaseModel(nn.Module):
 
 def build_baseline0(dataset, num_hid):
     w_emb = WordEmbedding(dataset.dictionary.ntoken, 300, 0.0)
-    q_emb = QuestionEmbedding(300, num_hid, 1, False, 0.0)
-    v_att = Attention(dataset.v_dim, q_emb.num_hid, num_hid)
+    q_emb1 = QuestionEmbedding1(300)
+    q_emb2 = QuestionEmbedding(300, num_hid, 1, False, 0.0)
+    v_att = Attention(dataset.v_dim, q_emb2.num_hid, num_hid)
     q_net = FCNet([num_hid, num_hid])
     v_net = FCNet([dataset.v_dim, num_hid])
     classifier = SimpleClassifier(
         num_hid, 2 * num_hid, dataset.num_ans_candidates, 0.5)
-    return BaseModel(w_emb, q_emb, v_att, q_net, v_net, classifier)
+    return CNNModel1(w_emb, q_emb1, q_emb2, v_att, q_net, v_net, classifier)
 
 
 def build_baseline0_newatt(dataset, num_hid):
@@ -55,4 +57,4 @@ def build_baseline0_newatt(dataset, num_hid):
     v_net = FCNet([dataset.v_dim, num_hid])
     classifier = SimpleClassifier(
         num_hid, num_hid * 2, dataset.num_ans_candidates, 0.5)
-    return BaseModel(w_emb, q_emb, v_att, q_net, v_net, classifier)
+    return CNNModel1(w_emb, q_emb, v_att, q_net, v_net, classifier)

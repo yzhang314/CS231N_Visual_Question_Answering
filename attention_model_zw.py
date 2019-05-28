@@ -15,7 +15,8 @@ class AttentionModel(nn.Module):
         self.q_net = q_net
         self.v_net = v_net
         self.classifier = classifier
-        self.linear_v = linear_v
+        self.linear = linear
+
 
     def forward(self, v, b, q, labels):
         """Forward
@@ -34,15 +35,16 @@ class AttentionModel(nn.Module):
         # stack 1
         att = self.v_att(v_emb, q_emb)
         v_emb1 = (att * v_emb).sum(1)  # [batch, num_hid]
-
+        """
         # stack 2
         q_emb1 = q_emb + v_emb1  # [batch, num_hid]
 
         att1 = self.v_att(v_emb, q_emb1)
         v_emb2 = (att1 * v_emb).sum(1)
+        """
 
         q_repr = self.q_net(q_emb)  # [batch, num_hid]
-        v_repr = self.v_net(v_emb2)  # [batch, num_hid]
+        v_repr = self.v_net(v_emb1)  # [batch, num_hid]
 
         joint_repr = q_repr * v_repr
 
