@@ -11,7 +11,7 @@ class CNNModel(nn.Module):
         super(CNNModel, self).__init__()
         self.w_emb = w_emb
         self.q_emb1 = q_emb1
-        self.q_emb2 = q.emb2
+        self.q_emb2 = q_emb2
         self.v_att = v_att
         self.q_net = q_net
         self.v_net = v_net
@@ -31,7 +31,7 @@ class CNNModel(nn.Module):
         w_emb = self.w_emb(q)  # [batch, seq, 300]
         q_emb = self.q_emb1(w_emb)  # [batch, q_dim]
 
-        v_emb = self.linear(v)
+        v_emb = self.linear_v(v)
 
         # stack 1
         att = self.v_att(v_emb, q_emb)
@@ -54,9 +54,8 @@ def build_baseline0(dataset, num_hid):
     v_att = StackAttention1(num_hid, num_hid, num_hid)
     q_net = FCNet([num_hid, num_hid])
     v_net = FCNet([dataset.v_dim, num_hid])
-    linear_v = torch.nn.Linear(dataset.v_dim, num_hid)
+    linear_v = FCNet([dataset.v_dim, num_hid])
     linear_q = torch.nn.Linear(2*num_hid, num_hid)
     classifier = SimpleClassifier(
         num_hid, 2 * num_hid, dataset.num_ans_candidates, 0.5)
     return CNNModel(w_emb, q_emb1, q_emb2, v_att, q_net, v_net, classifier, linear_v, linear_q)
-

@@ -7,7 +7,7 @@ from fc import FCNet
 
 
 class AttentionModel(nn.Module):
-    def __init__(self, w_emb, q_emb, v_att, q_net, v_net, classifier, linear):
+    def __init__(self, w_emb, q_emb1, q_emb2, v_att, q_net, v_net, classifier, linear):
         super(AttentionModel, self).__init__()
         self.w_emb = w_emb
         self.q_emb = q_emb
@@ -16,6 +16,7 @@ class AttentionModel(nn.Module):
         self.v_net = v_net
         self.classifier = classifier
         self.linear = linear
+
 
     def forward(self, v, b, q, labels):
         """Forward
@@ -26,26 +27,19 @@ class AttentionModel(nn.Module):
 
         return: logits, not probs
         """
-        w_emb = self.w_emb(q) # [batch, seq, 300]
-        q_emb = self.q_emb(w_emb) # [batch, q_dim]
-        
+        w_emb = self.w_emb(q)  # [batch, seq, 300]
+        q_emb = self.q_emb(w_emb)  # [batch, q_dim]
+
         v_emb = self.linear(v)
 
-        # stack 1
         att = self.v_att(v_emb, q_emb)
-        v_emb1 = (att * v_emb).sum(1) # [batch, num_hid]
-        
-        # stack 2
-        q_emb1 = q_emb + v_emb1 # [batch, num_hid]
+        v_emb1 = (att * v_emb).sum(1)  # [batch, num_hid]
 
-        att1 = self.v_att(v_emb, q_emb1)
-        v_emb2 = (att1 * v_emb).sum(1)
+        q_repr = self.q_net(q_emb)  # [batch, num_hid]
+        v_repr = self.v_net(v_emb1)  # [batch, num_hid]
 
-        q_repr = self.q_net(q_emb) #[batch, num_hid]
-        v_repr = self.v_net(v_emb2) # [batch, num_hid]
-        
         joint_repr = q_repr * v_repr
-        
+
         logits = self.classifier(joint_repr)
         # print(logits.shape)
         return logits
@@ -53,11 +47,12 @@ class AttentionModel(nn.Module):
 
 def build_baseline0(dataset, num_hid):
     w_emb = WordEmbedding(dataset.dictionary.ntoken, 300, 0.0)
-    q_emb = QuestionEmbedding(300, num_hid, 1, False, 0.0)
+    q_emb1 = QuestionEmbedding(300, num_hid, 1, False, 0.0)
+    q_emb2 = QuestionEmbedding(300)
     v_att = StackAttention1(num_hid, num_hid, num_hid)
     q_net = FCNet([num_hid, num_hid])
     v_net = FCNet([num_hid, num_hid])
-    linear = torch.nn.Linear(dataset.v_dim, num_hid)
+    linear = FCNet([dataset.v_dim, num_hid])
     classifier = SimpleClassifier(
         num_hid, 2 * num_hid, dataset.num_ans_candidates, 0.5)
     return AttentionModel(w_emb, q_emb, v_att, q_net, v_net, classifier, linear)
