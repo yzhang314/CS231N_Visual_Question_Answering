@@ -6,9 +6,9 @@ from classifier import SimpleClassifier
 from fc import FCNet
 
 
-class BaseModel(nn.Module):
+class CNNModel1(nn.Module):
     def __init__(self, w_emb, q_emb1, q_emb2, v_att, q_net, v_net, classifier):
-        super(BaseModel, self).__init__()
+        super(CNNModel1, self).__init__()
         self.w_emb = w_emb
         self.q_emb1 = q_emb1
         self.q_emb2 = q_emb2
@@ -57,4 +57,4 @@ def build_baseline0_newatt(dataset, num_hid):
     v_net = FCNet([dataset.v_dim, num_hid])
     classifier = SimpleClassifier(
         num_hid, num_hid * 2, dataset.num_ans_candidates, 0.5)
-    return BaseModel(w_emb, q_emb, v_att, q_net, v_net, classifier)
+    return CNNModel1(w_emb, q_emb, v_att, q_net, v_net, classifier)
