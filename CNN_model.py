@@ -49,7 +49,7 @@ class CNNModel(nn.Module):
 
 def build_baseline0(dataset, num_hid):
     w_emb = WordEmbedding(dataset.dictionary.ntoken, 300, 0.0)
-    q_emb1 = QuestionEmbedding1(300)
+    q_emb1 = cnnQuestionEmbedding(300)
     q_emb2 = QuestionEmbedding(300, num_hid, 1, False, 0.0)
     v_att = StackAttention1(num_hid, num_hid, num_hid)
     q_net = FCNet([num_hid, num_hid])

@@ -28,9 +28,9 @@ class AttentionModel(nn.Module):
         return: logits, not probs
         """
         w_emb = self.w_emb(q)  # [batch, seq, 300]
-        q_emb = self.q_emb(w_emb)  # [batch, q_dim]
+        q_emb = self.q_emb(w_emb)  # [batch, q_dim(=num_hid)]
 
-        v_emb = self.linear(v)
+        v_emb = self.linear(v) # [batch, num_hid]
 
         # stack 1
         att = self.v_att(v_emb, q_emb)
