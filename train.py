@@ -27,8 +27,8 @@ def train(model, train_loader, eval_loader, num_epochs, output):
     optim = torch.optim.Adamax(model.parameters())
     logger = utils.Logger(os.path.join(output, 'log.txt'))
     best_eval_score = 0
-    f = open("result12.txt", "w+")
-    f.write('cnn1 model')
+    f = open("MUTAN_5.txt", "w+")
+    f.write('this is MUTAN model, layers = 5')
 
 
     for epoch in range(num_epochs):

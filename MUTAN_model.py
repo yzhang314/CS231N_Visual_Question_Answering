@@ -31,10 +31,9 @@ class MUTANModel(nn.Module):
         att = self.v_att(v, q_emb)
         v_emb = (att * v).sum(1) # [batch, v_dim]
 
-        q_repr = self.q_net(q_emb)
-        v_repr = self.v_net(v_emb)
+        v_emb = self.v_net(v_emb)
 
-        joint_repr = self.mutan(q_repr, v_repr)
+        joint_repr = self.mutan(v_emb, q_emb)
         logits = self.classifier(joint_repr)
         return logits
 

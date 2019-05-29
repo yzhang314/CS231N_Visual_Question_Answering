@@ -7,6 +7,7 @@ import numpy as np
 from dataset import Dictionary, VQAFeatureDataset
 import LSTM_model
 import CNN_model
+import MUTAN_model
 import san_model_origin1
 from train import train
 import utils
@@ -17,7 +18,7 @@ def parse_args():
     parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--num_hid', type=int, default=1024)
     parser.add_argument('--model', type=str, default='baseline0')
-    parser.add_argument('--output', type=str, default='saved_models/CNN1')
+    parser.add_argument('--output', type=str, default='saved_models/MUTAN_5')
     parser.add_argument('--batch_size', type=int, default=512)
     parser.add_argument('--seed', type=int, default=1111, help='random seed')
     args = parser.parse_args()
@@ -37,7 +38,7 @@ if __name__ == '__main__':
     batch_size = args.batch_size
 
     constructor = 'build_%s' % args.model
-    model = getattr(CNN_model, constructor)(train_dset, args.num_hid).cuda()
+    model = getattr(MUTAN_model, constructor)(train_dset, args.num_hid).cuda()
     model.w_emb.init_embedding('data/glove6b_init_300d.npy')
 
     model = nn.DataParallel(model).cuda()

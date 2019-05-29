@@ -159,21 +159,21 @@ class MUTAN(nn.Module):
 
         hv = []
         for i in range(self.num_layers):
-            dp = nn.Dropout(p=0.5)
+            dp = nn.Dropout(p=0.1)
             linear = nn.Linear(self.input_dim, self.output_dim)
-            tan = nn.Tannh()
+            tan = nn.Tanh()
             hv.append(nn.Sequential(dp, linear, tan))
 
-        self.v_layer = nn.ModueList(hv)
+        self.v_layer = nn.ModuleList(hv)
 
         hq = []
         for i in range(self.num_layers):
-            dp = nn.Dropout(p=0.5)
+            dp = nn.Dropout(p=0.1)
             linear = nn.Linear(self.input_dim, self.output_dim)
-            tan = nn.Tannh()
+            tan = nn.Tanh()
             hq.append(nn.Sequential(dp, linear, tan))
 
-        self.q_layer = nn.ModueList(hq)
+        self.q_layer = nn.ModuleList(hq)
 
         self.tan = nn.Tanh()
 
@@ -191,7 +191,7 @@ class MUTAN(nn.Module):
 
             x_hq = q
             x_hq = self.q_layer[i](x_hq)
-            x_mm.apped(torch.mul(x_hq, x_hv))
+            x_mm.append(torch.mul(x_hq, x_hv))
         x_mm = torch.stack(x_mm, dim=1)
         x_mm = x_mm.sum(1).view(batch_size, self.output_dim)
         x_mm = self.tanh(x_mm)
