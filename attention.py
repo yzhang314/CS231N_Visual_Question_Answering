@@ -194,7 +194,7 @@ class MUTAN(nn.Module):
             x_mm.append(torch.mul(x_hq, x_hv))
         x_mm = torch.stack(x_mm, dim=1)
         x_mm = x_mm.sum(1).view(batch_size, self.output_dim)
-        x_mm = self.tanh(x_mm)
+        x_mm = self.tan(x_mm)
         return x_mm
 
 
