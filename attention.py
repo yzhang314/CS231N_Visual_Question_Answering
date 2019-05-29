@@ -126,6 +126,7 @@ class StackAttention1(nn.Module):
         self.fc_vq1 = FCNet([self.att_size, 1])
         self.tan = nn.Tanh()
         self.dp = nn.Dropout(0.5)
+
     def forward(self, v, q):
         """
         v: [batch, k, num_hid]
@@ -147,4 +148,53 @@ class StackAttention1(nn.Module):
         logits = self.fc_vq1(self.dp(h1_emb))  # [batch, k, 1]
 
         return logits
+
+class MUTAN(nn.Module):
+    def __init__(self, in_dim, out_dim, num_layers):
+        super(MUTAN, self).__init__()
+        # in this case we have q_dim = v_dim = num_hidden = 1024
+        self.input_dim = in_dim
+        self.output_dim = out_dim
+        self.num_layers = num_layers
+
+        hv = []
+        for i in range(self.num_layers):
+            dp = nn.Dropout(p=0.5)
+            linear = nn.Linear(self.input_dim, self.output_dim)
+            tan = nn.Tannh()
+            hv.append(nn.Sequential(dp, linear, tan))
+
+        self.v_layer = nn.ModueList(hv)
+
+        hq = []
+        for i in range(self.num_layers):
+            dp = nn.Dropout(p=0.5)
+            linear = nn.Linear(self.input_dim, self.output_dim)
+            tan = nn.Tannh()
+            hq.append(nn.Sequential(dp, linear, tan))
+
+        self.q_layer = nn.ModueList(hq)
+
+        self.tan = nn.Tanh()
+
+
+    def forward(self, v, q):
+        """
+        v: [batch, num_hid]
+        q: [batch, num_hid]
+        """
+        batch_size = v.size()[0]
+        x_mm = []
+        for i in range(self.num_layers):
+            x_hv = v
+            x_hv = self.v_layer[i](x_hv)
+
+            x_hq = q
+            x_hq = self.q_layer[i](x_hq)
+            x_mm.apped(torch.mul(x_hq, x_hv))
+        x_mm = torch.stack(x_mm, dim=1)
+        x_mm = x_mm.sum(1).view(batch_size, self.output_dim)
+        x_mm = self.tanh(x_mm)
+        return x_mm
+
 
