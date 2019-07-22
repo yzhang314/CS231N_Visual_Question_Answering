@@ -120,7 +120,6 @@ class VQAFeatureDataset(Dataset):
             self.spatials = np.array(hf.get('spatial_features'))
 
         self.entries = _load_dataset(dataroot, name, self.img_id2idx)
-
         self.tokenize()
         self.tensorize()
         self.v_dim = self.features.size(2)
@@ -133,6 +132,7 @@ class VQAFeatureDataset(Dataset):
         -1 represent nil, and should be treated as padding_idx in embedding
         """
         for entry in self.entries:
+            print (entry['question'])
             tokens = self.dictionary.tokenize(entry['question'], False)
             tokens = tokens[:max_length]
             if len(tokens) < max_length:
@@ -175,7 +175,7 @@ class VQAFeatureDataset(Dataset):
         if labels is not None:
             target.scatter_(0, labels, scores)
 
-        return features, spatials, question, target
+        return features, spatials, question, target, entry['question_id'], entry['answer']
 
     def __len__(self):
         return len(self.entries)

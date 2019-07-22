@@ -24,6 +24,7 @@ def compute_score_with_logits(logits, labels):
 
 
 def train(model, train_loader, eval_loader, num_epochs, output):
+    """
     utils.create_dir(output)
     optim = torch.optim.Adamax(model.parameters())
     logger = utils.Logger(os.path.join(output, 'log.txt'))
@@ -66,24 +67,32 @@ def train(model, train_loader, eval_loader, num_epochs, output):
         f.write('\ttrain_loss: %.2f, score: %.2f' % (total_loss, train_score))
         f.write('\teval score: %.2f (%.2f)' % (100 * eval_score, 100 * bound))
 
+
         if eval_score > best_eval_score:
             model_path = os.path.join(output, 'model.pth')
             torch.save(model.state_dict(), model_path)
             best_eval_score = eval_score
     f.close()
+    """
+    model_path = os.path.join(output, 'model.pth')
+    model = torch.load(model_path)
+    evaluate(model, eval_loader)
 
 
 def evaluate(model, dataloader):
     score = 0
     upper_bound = 0
     num_data = 0
+    i = 1
     for v, b, q, a in iter(dataloader):
-        label2ans_path = os.path.join('data', 'cache', 'trainval_label2ans.pkl')
-        label2ans = cPickle.load(open(label2ans_path, 'rb'))
+        #label2ans_path = os.path.join('data', 'cache', 'trainval_label2ans.pkl')
+        #label2ans = cPickle.load(open(label2ans_path, 'rb'))
         v = Variable(v, volatile=True).cuda()
         b = Variable(b, volatile=True).cuda()
         q = Variable(q, volatile=True).cuda()
         pred = model(v, b, q, None)
+
+
         batch_score = compute_score_with_logits(pred, a.cuda()).sum()
         score += batch_score
         upper_bound += (a.max(1)[0]).sum()
@@ -92,3 +101,5 @@ def evaluate(model, dataloader):
     score = score / len(dataloader.dataset)
     upper_bound = upper_bound / len(dataloader.dataset)
     return score, upper_bound
+
+

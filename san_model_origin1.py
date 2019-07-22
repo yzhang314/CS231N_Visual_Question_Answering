@@ -42,7 +42,6 @@ class SANModel1(nn.Module):
         att3 = self.v_att2(v, q_new_3)
         v_emb3 = (att3 * v).sum(1)  # [batch, v_dim]
 
-
         # q_repr = self.q_net(q_emb)
         v_repr = self.v_net(v_emb3) # [batch, num_hid]
         # joint_repr = q_repr * v_repr

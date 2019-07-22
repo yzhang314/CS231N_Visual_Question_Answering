@@ -184,16 +184,19 @@ class MUTAN(nn.Module):
         q: [batch, num_hid]
         """
         batch_size = v.size()[0]
-        x_mm = []
+        x_mm = torch.ones((batch_size, 1024), dtype=torch.int8)
+
         for i in range(self.num_layers):
             x_hv = v
             x_hv = self.v_layer[i](x_hv)
 
             x_hq = q
             x_hq = self.q_layer[i](x_hq)
-            x_mm.append(torch.mul(x_hq, x_hv))
-        x_mm = torch.stack(x_mm, dim=1)
-        x_mm = x_mm.sum(1).view(batch_size, self.output_dim)
+            # x_mm.append(torch.mul(x_hq, x_hv)) # [batch, num_hid]
+            x_mm = x_mm.mul(torch.mul(x_hq, x_hv))
+
+        # x_mm = torch.stack(x_mm, dim=1)
+        # x_mm = x_mm.sum(1).view(batch_size, self.output_dim)
         x_mm = self.tan(x_mm)
         return x_mm
 
